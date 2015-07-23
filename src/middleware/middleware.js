@@ -51,6 +51,8 @@ middleware.ensureLoggedIn = ensureLoggedIn.ensureLoggedIn(nconf.get('relative_pa
 middleware.pageView = function(req, res, next) {
 	analytics.pageView(req.ip);
 
+	plugins.fireHook('action:middleware.pageView', {req: req});
+
 	if (req.user) {
 		user.updateLastOnlineTime(req.user.uid);
 		if (req.path.startsWith('/api/users') || req.path.startsWith('/users')) {
@@ -191,13 +193,14 @@ middleware.buildHeader = function(req, res, next) {
 };
 
 middleware.renderHeader = function(req, res, callback) {
-	var registrationType = meta.config.registrationType || 'normal'
+	var registrationType = meta.config.registrationType || 'normal';
 	var templateValues = {
 		bootswatchCSS: meta.config['theme:src'],
 		title: meta.config.title || '',
 		description: meta.config.description || '',
 		'cache-buster': meta.config['cache-buster'] ? 'v=' + meta.config['cache-buster'] : '',
 		'brand:logo': meta.config['brand:logo'] || '',
+		'brand:logo:url': meta.config['brand:logo:url'] || '',
 		'brand:logo:display': meta.config['brand:logo']?'':'hide',
 		allowRegistration: registrationType === 'normal' || registrationType === 'admin-approval',
 		searchEnabled: plugins.hasListeners('filter:search.query')
@@ -274,7 +277,7 @@ middleware.renderHeader = function(req, res, callback) {
 		templateValues.linkTags = results.tags.link;
 		templateValues.isAdmin = results.user.isAdmin;
 		templateValues.user = results.user;
-		templateValues.userJSON = JSON.stringify(results.user).replace(/'/g, "\\'");
+		templateValues.userJSON = JSON.stringify(results.user);
 		templateValues.customCSS = results.customCSS;
 		templateValues.customJS = results.customJS;
 		templateValues.maintenanceHeader = parseInt(meta.config.maintenanceMode, 10) === 1 && !results.isAdmin;
@@ -327,7 +330,7 @@ middleware.processRender = function(req, res, next) {
 				return fn(err);
 			}
 
-			// str = str + '<input type="hidden" ajaxify-data="' + encodeURIComponent(JSON.stringify(options)) + '" />';
+			str = str + '<input type="hidden" ajaxify-data="' + encodeURIComponent(JSON.stringify(options)) + '" />';
 			str = (res.locals.postHeader ? res.locals.postHeader : '') + str + (res.locals.preFooter ? res.locals.preFooter : '');
 
 			if (res.locals.footer) {
@@ -344,6 +347,7 @@ middleware.processRender = function(req, res, next) {
 					}
 					str = template + str;
 					var language = res.locals.config ? res.locals.config.userLang || 'en_GB' : 'en_GB';
+					language = req.query.lang || language;
 					translator.translate(str, language, function(translated) {
 						fn(err, translated);
 					});
