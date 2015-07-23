@@ -57,10 +57,10 @@ define('forum/register', ['csrf', 'translator'], function(csrf, translator) {
 			validationError = false;
 			validatePassword(password.val(), password_confirm.val());
 			validatePasswordConfirm(password.val(), password_confirm.val());
-
-			validateEmail(email.val(), function() {
+			callback();
+			/*validateEmail(email.val(), function() {
 				validateUsername(username.val(), callback);
-			});
+			});*/
 		}
 
 		register.on('click', function(e) {

@@ -40,10 +40,6 @@ authenticationController.register = function(req, res, next) {
 			}
 		},
 		function(next) {
-			if (!userData.email) {
-				return next(new Error('[[error:invalid-email]]'));
-			}
-
 			if (!userData.username || userData.username.length < meta.config.minimumUsernameLength) {
 				return next(new Error('[[error:username-too-short]]'));
 			}
