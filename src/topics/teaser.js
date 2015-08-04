@@ -4,7 +4,6 @@
 
 var async = require('async'),
 	S = require('string'),
-
 	meta = require('../meta'),
 	db = require('../database'),
 	user = require('../user'),
@@ -26,7 +25,7 @@ module.exports = function(Topics) {
 		topics.forEach(function(topic) {
 			counts.push(topic && (parseInt(topic.postcount, 10) || 0));
 			if (topic) {
-				if (meta.config.teaserPost === 'first') {
+				if (topic.teaserPid === undefined || meta.config.teaserPost === 'first') {
 					teaserPids.push(topic.mainPid);
 				} else {
 					teaserPids.push(topic.teaserPid);
@@ -78,7 +77,6 @@ module.exports = function(Topics) {
 						}
 						return tidToPost[topic.tid];
 					});
-
 					plugins.fireHook('filter:teasers.get', {teasers: teasers}, function(err, data) {
 						callback(err, data ? data.teasers : null);
 					});
