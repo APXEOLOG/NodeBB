@@ -9,7 +9,7 @@
 
 	var	languages = {},
 		regexes = {
-			match: /\[\[\w+:[\s\S]+?\]\]/g,
+			match: /\[\[\w+:[^\]]+?\]\]/g,
 			split: /[,][\s]*/,
 			replace: /\]+$/
 		};
@@ -168,6 +168,7 @@
 		var variables = key.split(regexes.split);
 
 		var parsedKey = key.replace('[[', '').replace(']]', '').split(':');
+		parsedKey = [parsedKey[0]].concat(parsedKey.slice(1).join(':'));
 		if (!(parsedKey[0] && parsedKey[1])) {
 			return callback(data);
 		}
@@ -301,7 +302,9 @@
 		// Expose a global `translator` object for backwards compatibility
 		window.translator = {
 			translate: function() {
-				console.warn('[translator] Global invocation of the translator is now deprecated, please `require` the module instead.');
+				if (typeof console !== 'undefined' && console.warn) {
+					console.warn('[translator] Global invocation of the translator is now deprecated, please `require` the module instead.');
+				}
 				_translator.translate.apply(_translator, arguments);
 			}
 		}

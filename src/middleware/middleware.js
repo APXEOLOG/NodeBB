@@ -66,6 +66,15 @@ middleware.pageView = function(req, res, next) {
 	}
 };
 
+middleware.pluginHooks = function(req, res, next) {
+	async.each(plugins.loadedHooks['filter:router.page'] || [], function(hookObj, next) {
+		hookObj.method(req, res, next)
+	}, function(req, res) {
+		// If it got here, then none of the subscribed hooks did anything, or there were no hooks
+		next();
+	});
+};
+
 middleware.redirectToAccountIfLoggedIn = function(req, res, next) {
 	if (!req.user) {
 		return next();
@@ -168,6 +177,7 @@ middleware.isAdmin = function(req, res, next) {
 
 middleware.buildHeader = function(req, res, next) {
 	res.locals.renderHeader = true;
+	res.locals.isAPI = false;
 
 	middleware.applyCSRF(req, res, function() {
 		async.parallel({
@@ -397,7 +407,8 @@ middleware.maintenanceMode = function(req, res, next) {
 			'/templates/[\\w/]+.tpl',
 			'/api/login',
 			'/api/?',
-			'/language/.+'
+			'/language/.+',
+			'/uploads/system/site-logo.png'
 		],
 		render = function() {
 			res.status(503);
@@ -482,6 +493,14 @@ middleware.exposeUid = function(req, res, next) {
 	} else {
 		next();
 	}
+};
+
+middleware.requireUser = function(req, res, next) {
+	if (req.user) {
+		return next();
+	}
+
+	res.render('403', {});
 };
 
 function redirectToLogin(req, res) {

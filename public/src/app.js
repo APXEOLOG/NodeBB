@@ -92,7 +92,7 @@ app.cacheBuster = null;
 
 			switch(url_parts[0]) {
 				case 'user':
-					room = 'user/' + ajaxify.data.theirid;
+					room = 'user/' + ajaxify.data ? ajaxify.data.theirid : 0;
 				break;
 				case 'topic':
 					room = 'topic_' + url_parts[1];
@@ -185,7 +185,8 @@ app.cacheBuster = null;
 				enter: room,
 				username: app.user.username,
 				userslug: app.user.userslug,
-				picture: app.user.picture
+				picture: app.user.picture,
+				status: app.user.status
 			}, function(err) {
 				if (err) {
 					app.alertError(err.message);
@@ -293,7 +294,10 @@ app.cacheBuster = null;
 			}
 
 			if (!chat.modalExists(touid)) {
-				chat.createModal(username, touid, loadAndCenter);
+				chat.createModal({
+					username: username,
+					touid: touid
+				}, loadAndCenter);
 			} else {
 				loadAndCenter(chat.getModal(touid));
 			}
@@ -377,7 +381,8 @@ app.cacheBuster = null;
 	};
 
 	function createHeaderTooltips() {
-		if (utils.findBootstrapEnvironment() === 'xs') {
+		var env = utils.findBootstrapEnvironment();
+		if (env === 'xs' || env === 'sm') {
 			return;
 		}
 		$('#header-menu li a[title]').each(function() {
@@ -451,6 +456,7 @@ app.cacheBuster = null;
 					return app.alertError(err.message);
 				}
 				$('#logged-in-menu #user_label #user-profile-link>i').attr('class', 'fa fa-circle status ' + status);
+				app.user.status = status;
 			});
 			e.preventDefault();
 		});
